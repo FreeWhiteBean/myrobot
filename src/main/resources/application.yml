@@ -24,7 +24,7 @@ spring:
   redis:
     host: 121.4.76.243
     port: 6379
-#    password: Travel@2019
+    password: Woaiwojia_22
     database: 0
 
 mybatis-plus:
@@ -44,6 +44,7 @@ resources:
 simbot:
   core:
     bots: 515438175:....2+2woaiwojia
+#    bots: 821309218:....2+2woaiwojia
   component:
     mirai:
       protocol: ANDROID_PAD

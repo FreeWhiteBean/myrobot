@@ -11,6 +11,7 @@ import love.forte.simbot.api.message.events.GroupMsg;
 import love.forte.simbot.api.sender.MsgSender;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import simbot.demo.entity.Class;
 import simbot.demo.entity.Student;
@@ -20,6 +21,7 @@ import simbot.demo.utils.Const;
 import simbot.demo.utils.HttpUtils;
 
 import java.text.MessageFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -47,16 +49,20 @@ public class GroupListener {
     private IStudentService studentService;
     @Autowired
     private ClassService classService;
+    @Autowired
+    private RedisTemplate redisTemplate;
+
 
     private final Map<String, String> copyMap = new HashMap<>();
     private final Map<String, String> copiedMap = new HashMap<>();
     private final Map<String, String> imageMap = new HashMap<>();
     private final Map<String, Integer> dongMap = new HashMap<>();
     private final Map<String, Map<String, Object>> macroMap = new HashMap<>();
-    boolean flag = false;
+    boolean tianmi = false;
     boolean dujitang = false;
     boolean pengyouquan = false;
     boolean zuichou = false;
+    boolean liaotian = false;
 
     @OnGroup
     public void onGroupMsg(GroupMsg groupMsg, MsgSender sender) {
@@ -89,25 +95,29 @@ public class GroupListener {
                         "2.群消息发送“.毒鸡汤”进入毒鸡汤模式" + "\n" +
                         "3.群消息发送“.朋友圈”进入朋友圈文案模式" + "\n" +
                         "4.群消息发送“.嘴臭”进入嘴臭模式" + "\n" +
-                        "5.群消息中包含“白叔”发送白叔喜欢的图片（本人亲友）" + "\n" +
-                        "6.群消息中包含“来点好康的”私聊消息发送人一张好康的图片" + "\n" +
-                        "7.群消息中包含“来点你懂的(”私聊消息发送人一张你懂的图片" + "\n" +
-                        "8.roll点 群消息中包含“/roll”发送 1-100 的随机数" + "\n" +
-                        "9.群消息发送“禁言@xxx”随机roll点，根据点数发起禁言，50以下禁言自己，50以上禁言对方" + "\n" +
-                        "10.群消息中出现连续两条一样的消息自动复读" + "\n" +
-                        "11.群消息发送“.闭嘴”，就闭嘴了"+ "\n" +
-                        "12.门派宏，群消息发送”.xx宏“可查询对应门派宏，可选项”byxxx“（非必填）,查询某作者的宏（宏来源剑三box），如”.藏剑宏by韶华“";
+                        "5.群消息发送“.聊天”进入自动聊天模式" + "\n" +
+                        "6.群消息发送“.历史今日”查询历史今日的大事" + "\n" +
+                        "7.群消息中包含“白叔”发送白叔喜欢的图片（本人亲友）" + "\n" +
+                        "8.群消息中包含“来点好康的”私聊消息发送人一张好康的图片" + "\n" +
+                        "9.群消息中包含“来点你懂的(”私聊消息发送人一张你懂的图片" + "\n" +
+                        "10.roll点 群消息中包含“/roll”发送 1-100 的随机数" + "\n" +
+                        "11.群消息发送“禁言@xxx”随机roll点，根据点数发起禁言，50以下禁言自己，50以上禁言对方" + "\n" +
+                        "12.群消息中出现连续两条一样的消息自动复读" + "\n" +
+                        "13.群消息发送“.闭嘴”，就闭嘴了" + "\n" +
+                        "14.门派宏，群消息发送”.xx宏“可查询对应门派宏，可选项”byxxx“（非必填）,查询某作者的宏（宏来源剑三box），如”.藏剑宏by韶华“";
                 sender.SENDER.sendGroupMsg(groupMsg, sb);
             }
 
             /** 群消息发送“.甜蜜”进入甜蜜模式*/
-            reply(groupMsg, sender, flag, Const.QH);
+            reply(groupMsg, sender, tianmi, Const.QH);
             /** 群消息发送“.毒鸡汤”进入毒鸡汤模式*/
             reply(groupMsg, sender, dujitang, Const.DJT);
             /** 群消息发送“.朋友圈”进入朋友圈文案模式*/
             reply(groupMsg, sender, pengyouquan, Const.PYQ);
             /** 群消息发送“.嘴臭”进入嘴臭模式*/
             reply(groupMsg, sender, zuichou, Const.ZUICHOU);
+            /** 群消息发送“.聊天”进入自动聊天模式*/
+            AI(groupMsg, sender, liaotian);
 
             /** 群消息中包含“白叔”发送白叔喜欢的图片*/
             baishu(groupMsg, sender, msg, stringTemplate);
@@ -131,8 +141,36 @@ public class GroupListener {
 
             /** 查询门派宏功能*/
             macro(groupMsg, sender, msg, stringTemplate);
+
+            /** 查询历史今日的大事*/
+            hisToday(groupMsg, sender, msg);
             // 红色显眼儿一点
             System.err.println(printMsg);
+        }
+    }
+
+    private void hisToday(GroupMsg groupMsg, MsgSender sender, String msg) {
+        if (msg.contains(".历史今日")) {
+            String key = String.format(Const.HIS_TODAY_REDIS_KEY, LocalDate.now().toString());
+            String data = (String) redisTemplate.opsForValue().get(key);
+            if (StringUtils.isBlank(data)) {
+                String dsResult = HttpUtils.httpGet(Const.HIS_TODAY, null, null);
+                JSONObject jsonObject = JSON.parseObject(dsResult);
+                if (jsonObject.getInteger("code") == 200) {
+                    data = jsonObject.getString("data");
+                    redisTemplate.opsForValue().set(key, data);
+                } else {
+                    sender.SENDER.sendGroupMsg(groupMsg, "有点小问题，你再重新试试？");
+                    return;
+                }
+            }
+            List<JSONObject> jsonObjects = JSONArray.parseArray(data, JSONObject.class);
+            StringBuilder sb = new StringBuilder();
+            for (JSONObject jsonObject : jsonObjects) {
+                sb.append(jsonObject.getString("today")).append("，")
+                        .append(jsonObject.getString("content")).append("\n").append("\n");
+            }
+            sender.SENDER.sendGroupMsg(groupMsg, sb.toString());
         }
     }
 
@@ -238,39 +276,62 @@ public class GroupListener {
         }
     }
 
-    private void init(String msg) {
-        if (msg.contains(".不甜了")) {
-            flag = false;
+    private void AI(GroupMsg groupMsg, MsgSender sender, boolean flag) {
+        if (flag) {
+            String msg = groupMsg.getMsg();
+            if (msg.contains(".聊天")) {
+                msg = "嗨~";
+            }
+            String url = String.format(Const.AI_API, msg);
+            String dsResult = HttpUtils.httpGet(url, null, null);
+            String content = JSONObject.parseObject(dsResult).getString("content");
+            sender.SENDER.sendGroupMsg(groupMsg, content);
         }
+    }
+
+    private void init(String msg) {
+
         if (msg.contains(".甜蜜")) {
-            flag = true;
+            tianmi = true;
             dujitang = false;
             pengyouquan = false;
             zuichou = false;
+            liaotian = false;
         }
         if (msg.contains(".毒鸡汤")) {
-            flag = false;
+            tianmi = false;
             dujitang = true;
             pengyouquan = false;
             zuichou = false;
+            liaotian = false;
         }
         if (msg.contains(".朋友圈")) {
-            flag = false;
+            tianmi = false;
             dujitang = false;
             pengyouquan = true;
             zuichou = false;
+            liaotian = false;
         }
         if (msg.contains(".嘴臭")) {
-            flag = false;
+            tianmi = false;
             dujitang = false;
             pengyouquan = false;
             zuichou = true;
+            liaotian = false;
         }
-        if (msg.contains(".闭嘴")) {
-            flag = false;
+        if (msg.contains(".聊天")) {
+            tianmi = false;
             dujitang = false;
             pengyouquan = false;
             zuichou = false;
+            liaotian = true;
+        }
+        if (msg.contains(".闭嘴")) {
+            tianmi = false;
+            dujitang = false;
+            pengyouquan = false;
+            zuichou = false;
+            liaotian = false;
         }
     }
 
