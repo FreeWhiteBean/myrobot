@@ -15,6 +15,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import simbot.demo.entity.Class;
 import simbot.demo.entity.Student;
+import simbot.demo.entity.vo.HisTodayVo;
 import simbot.demo.service.ClassService;
 import simbot.demo.service.IStudentService;
 import simbot.demo.utils.Const;
@@ -23,10 +24,14 @@ import simbot.demo.utils.HttpUtils;
 import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+
+import static com.alibaba.fastjson.JSONPatch.OperationType.add;
 
 /**
  * <p> 用作示例的监听器类。默认的监听器示例。
@@ -158,6 +163,12 @@ public class GroupListener {
                 JSONObject jsonObject = JSON.parseObject(dsResult);
                 if (jsonObject.getInteger("code") == 200) {
                     data = jsonObject.getString("data");
+                    if (StringUtils.isBlank(data)){
+                        HisTodayVo hisTodayVo = new HisTodayVo(LocalDate.now().toString());
+                        ArrayList<HisTodayVo> hisTodayVos = new ArrayList<>();
+                        hisTodayVos.add(hisTodayVo);
+                        data = JSON.toJSONString(hisTodayVos);
+                    }
                     redisTemplate.opsForValue().set(key, data);
                 } else {
                     sender.SENDER.sendGroupMsg(groupMsg, "有点小问题，你再重新试试？");

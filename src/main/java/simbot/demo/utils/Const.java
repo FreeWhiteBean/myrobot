@@ -11,11 +11,12 @@ public final class Const {
     private Const() {
     }
 
-    //    public static final ArrayList<String> GROUP_LIST = new ArrayList<>(Arrays.asList("304614824", "971838349", "1081832411","671907007","713108023"));
-    public static final ArrayList<String> GROUP_LIST = new ArrayList<>(Arrays.asList("589341353"));//呱
-//    public static final ArrayList<String> GROUP_LIST = new ArrayList<>(Arrays.asList("971838349"));//黑大铁
+    //群聊监听列表
+    public static final ArrayList<String> GROUP_LIST = new ArrayList<>(Arrays.asList("788015046"));//呱
 //    public static final ArrayList<String> GROUP_LIST = new ArrayList<>(Arrays.asList("982232171"));//测试
+//    public static final ArrayList<String> GROUP_LIST = new ArrayList<>(Arrays.asList("971838349"));//黑大铁
 
+    //私聊监听列表
     public static final ArrayList<String> PRIVATE_LIST = new ArrayList<>(Arrays.asList("1210453237", "854961517", "704685927"));
 
     public static final String QH = "https://chp.shadiao.app/api.php?from=cherishcyt";

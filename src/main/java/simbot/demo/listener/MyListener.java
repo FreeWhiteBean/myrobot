@@ -2,6 +2,8 @@ package simbot.demo.listener;
 
 import love.forte.simbot.annotation.OnPrivate;
 import love.forte.simbot.api.message.events.PrivateMsg;
+import love.forte.simbot.api.message.results.GroupList;
+import love.forte.simbot.api.message.results.SimpleGroupInfo;
 import love.forte.simbot.api.sender.MsgSender;
 import org.springframework.stereotype.Component;
 
@@ -21,6 +23,10 @@ public class MyListener {
     public void privateListen(PrivateMsg privateMsg, MsgSender sender){
         // 复读私聊的信息。
         sender.SENDER.sendPrivateMsg(privateMsg, privateMsg.getMsgContent());
+        GroupList groupList = sender.GETTER.getGroupList();
+        for (SimpleGroupInfo simpleGroupInfo : groupList) {
+
+        }
     }
 
 

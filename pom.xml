@@ -16,7 +16,7 @@
 
     <properties>
         <java.version>1.8</java.version>
-        <simbot.version>2.0.0-BETA.5</simbot.version>
+        <simbot.version>2.0.4</simbot.version>
     </properties>
 
     <dependencyManagement>

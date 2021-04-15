@@ -8,7 +8,7 @@ spring:
       driverClassName: com.mysql.cj.jdbc.Driver
       url: jdbc:mysql://121.4.76.243:3306/simple_robot?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&useSSL=false
       username: root
-      password: Woaiwojia_22
+      password: root
       initial-size: 1
       max-active: 20
       min-idle: 1
@@ -44,6 +44,7 @@ resources:
 simbot:
   core:
     bots: 515438175:....2+2woaiwojia
+#    bots: 2793168189:Woaiwojia_22
 #    bots: 821309218:....2+2woaiwojia
   component:
     mirai:
